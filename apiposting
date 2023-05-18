@@ -1,0 +1,170 @@
+import 'dart:convert';
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'new.dart';
+
+
+class Post extends StatefulWidget {
+  const Post({Key? key}) : super(key: key);
+
+  @override
+  State<Post> createState() => _customState();
+
+}
+
+class _customState extends State<Post> {
+  List<Myproject> transList = [];
+  String strTitle = "Welcome";
+
+  @override
+  void initState() {
+    FetchWelcome();
+  }
+
+  Future<List<Myproject>> FetchWelcome() async {
+
+
+    final resp = await http.post(Uri.parse("https://truebroker.in/web_new/api/mobile/true_index.php"),
+      body: (
+          {"type": "8",
+            "sub_type" : "1",
+            "cid" :"13051305",
+            "device_id":"1654414111",
+            "ln":"77.000",
+            "lt":"11.222",
+            "uid":"1",
+          }),
+    );
+    print("Post");
+    print(resp.body);
+    if (resp.statusCode == 200) {
+      transList.clear();
+    //  print(jsonDecode(resp.body)['Sucess']);
+      (jsonDecode(resp.body) as List).forEach((s) {
+        transList.add(Myproject.fromJson(s));
+      });
+
+      return transList;
+    }
+    throw ("Faild to load");
+  }
+
+  Widget build(BuildContext context) {
+    return Scaffold(
+
+        appBar: AppBar(),
+        body: Container(
+            child:  FutureBuilder<List<Myproject>>(
+                future: FetchWelcome(),
+                builder: (context, snapshot) {
+                  print(  transList.length);
+                  if (snapshot.hasData) {
+                    print(  transList.length);
+                    return ListView.builder(
+                        itemCount: transList.length,
+                        itemBuilder: (BuildContext context,   index) {
+                          return Column(
+                              children: [
+                                Row(
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Container(
+                                        height: 180,
+                                        width: 300,
+                                        color: Colors.pink.shade200,
+                                        child: Column(
+                                          children: [
+                                            Padding(
+                                              padding: const EdgeInsets.only(left:10,top: 10),
+                                              child: Container(
+                                                height: 20,
+                                                child: Text(transList[index].id,style:const TextStyle(
+                                                    fontSize: 18,fontWeight: FontWeight.bold
+                                                ) ,),
+                                              ),
+                                            ),
+
+                                            Padding(
+                                              padding: const EdgeInsets.only(left:10,top: 10),
+                                              child: Container(
+                                                height: 20,
+                                                child: Text(transList[index].category,style: const TextStyle(
+                                                    fontWeight: FontWeight.w500,fontSize: 14
+                                                ),),
+                                              ),
+                                            ),
+                                            Padding(
+                                              padding: const EdgeInsets.only(left:10,top: 5),
+                                              child: Container(
+                                                height: 32,
+                                                child: Text(transList[index].catName,style: const TextStyle(
+                                                    fontSize: 14,fontWeight: FontWeight.w500
+                                                ),),),
+                                            ),
+                                            Padding(
+                                              padding: const EdgeInsets.only(left:10,top: 5),
+                                              child: Container(
+                                                height: 20,
+                                                child: Text(transList[index].subCategory,style: const TextStyle(
+                                                    fontSize: 14,fontWeight: FontWeight.w500
+                                                ),),),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    )
+                                  ],
+                                ),
+                              ]);
+                        });
+                  } else if (snapshot.hasError) {
+                    return Text(snapshot.error.toString());
+                  }
+                  return const CircularProgressIndicator();
+                }
+
+            )
+
+        ));
+  }
+}
+
+model class
+
+class Myproject {
+  final String id;
+  final String category;
+  final String catName;
+  final String subCategory;
+  final  String img1;
+
+  Myproject({
+    required this.id,
+    required this.category,
+    required this.catName,
+    required this.subCategory,
+    required this.img1,
+
+  });
+
+  factory Myproject.fromJson(Map<String, dynamic> json) => Myproject(
+    id: json["id"].toString(),
+    category: json["category"].toString(),
+    catName: json["cat_name"].toString(),
+    subCategory: json["sub_category"].toString(),
+    img1: json["img1"],
+
+     );
+
+  Map<String, dynamic> toJson() => {
+    "id": id.toString(),
+    "category": category.toString(),
+    "cat_name": catName.toString(),
+    "sub_category": subCategory.toString(),
+    "img1": img1,
+
+   };
+}
+
+
